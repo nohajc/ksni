@@ -294,6 +294,13 @@ impl<T: Tray + 'static> InnerState<T> {
             );
         }
 
+        if let Some(item_is_menu) = prop_cache.item_is_menu_changed(&*inner) {
+            sni_changed.insert(
+                "ItemIsMenu".into(),
+                Variant(Box::new(item_is_menu.to_string())),
+            );
+        }
+
         if !dbusmenu_changed.is_empty() {
             let msg = PropertiesPropertiesChanged {
                 interface_name: "com.canonical.dbusmenu".to_owned(),
@@ -560,7 +567,8 @@ impl<T: Tray + 'static> dbus_interface::StatusNotifierItem for InnerState<T> {
     }
 
     fn item_is_menu(&self) -> Result<bool, dbus::MethodErr> {
-        Ok(false)
+        let model = self.handle.model.lock().unwrap();
+        Ok(Tray::item_is_menu(&*model))
     }
 
     fn category(&self) -> Result<String, dbus::MethodErr> {
@@ -799,6 +807,7 @@ struct PropertiesCache {
     status: crate::Status,
     window_id: i32,
     icon_theme_path: u64,
+    item_is_menu: bool,
     icon: u64,
     overlay_icon: u64,
     attention_icon: u64,
@@ -814,6 +823,7 @@ impl PropertiesCache {
             status: tray.status(),
             window_id: tray.window_id(),
             icon_theme_path: hash_of(tray.icon_theme_path()),
+            item_is_menu: tray.item_is_menu(),
             icon: hash_of((tray.icon_name(), tray.icon_pixmap())),
             overlay_icon: hash_of((tray.overlay_icon_name(), tray.overlay_icon_pixmap())),
             attention_icon: hash_of((
@@ -869,6 +879,16 @@ impl PropertiesCache {
         let hash = hash_of(&v);
         if self.icon_theme_path != hash {
             self.icon_theme_path = hash;
+            Some(v)
+        } else {
+            None
+        }
+    }
+
+    fn item_is_menu_changed<T: Tray>(&mut self, t: &T) -> Option<bool> {
+        let v = t.item_is_menu();
+        if self.item_is_menu != v {
+            self.item_is_menu = v;
             Some(v)
         } else {
             None

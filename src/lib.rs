@@ -89,7 +89,9 @@ pub trait Tray: Sized {
     /// The item only support the context menu, the visualization
     /// should prefer showing the menu or sending ContextMenu()
     /// instead of Activate()
-    // fn item_is_menu() -> bool { false }
+    fn item_is_menu(&self) -> bool {
+        true
+    }
 
     /// The StatusNotifierItem can carry an icon that can be used by the
     /// visualization to identify the item.
