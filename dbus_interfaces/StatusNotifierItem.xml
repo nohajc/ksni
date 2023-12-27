@@ -92,5 +92,11 @@
       <arg name="status" type="s"/>
     </signal>
 
+    <!--  The following items are not supported by specs, but widely used  -->
+    <signal name="NewIconThemePath">
+    <arg type="s" name="icon_theme_path" direction="out"/>
+    </signal>
+    <signal name="NewMenu"/>
+
   </interface>
 </node>
